@@ -10,8 +10,6 @@ fn main() {
         .expect("Failed to read line");
     user_input = user_input.trim().to_string();
 
-    println!("received input '{}'", &user_input);
-
     let parse_subnet_regex =
         Regex::new(r"(\d{1,3}).(\d{1,3}).(\d{1,3}).(\d{1,3})\/(\d{1,2})").unwrap();
     let subnet_captures = parse_subnet_regex.captures(&user_input).unwrap();
@@ -23,12 +21,14 @@ fn main() {
             .parse::<u8>()
             .expect("Invalid octet")
     });
-    let cidr: u8 = subnet_captures
+    let cidr_num: u32 = subnet_captures
         .get(5)
         .unwrap()
         .as_str()
-        .parse::<u8>()
+        .parse::<u32>()
         .expect("Invalid CIDR");
-    println!("{:#?}", &octets);
-    println!("{}", &cidr);
+    let num_avail_ip_addresses: u32 = 2u32.pow(32u32-cidr_num);
+    println!("There are {} IP addresses in this subnet\n\t(2 are reserved - 1 for network address and 1 for broadcast address)", num_avail_ip_addresses);
+    // println!("{:#?}", &octets);
+    // println!("{}", &cidr_num);
 }
