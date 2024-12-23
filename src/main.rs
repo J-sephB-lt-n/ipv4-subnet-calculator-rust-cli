@@ -20,19 +20,36 @@ fn main() {
         num_avail_ip_addresses
     );
     println!("{} IP addresses are assignable to hosts (1 IP is reserved for network address and 1 for broadcast address)", num_avail_ip_addresses-2);
+
     let binary_num_str = octets_to_binary_num_str(&octets);
-    let start_ip_str = format!("{:0<32}", &binary_num_str[..cidr_num as usize]);
-    let end_ip_str = format!("{:1<32}", &binary_num_str[..cidr_num as usize]);
+    let network_ip_str = format!("{:0<32}", &binary_num_str[..cidr_num as usize]);
+    let network_ip_int = u32::from_str_radix(&network_ip_str, 2).unwrap();
+    let min_ip_int: u32 = network_ip_int + 1;
+    let min_ip_str = format!("{:032b}", min_ip_int);
+    let broadcast_ip_str = format!("{:1<32}", &binary_num_str[..cidr_num as usize]);
+    let broadcast_ip_int = u32::from_str_radix(&broadcast_ip_str, 2).unwrap();
+    let max_ip_int: u32 = broadcast_ip_int - 1;
+    let max_ip_str = format!("{:032b}", max_ip_int);
+
     println!(
-        "Subnet start IP: {}.{}.{}.{}\nSubnet end IP: {}.{}.{}.{}",
-        &start_ip_str[0..8],
-        &start_ip_str[8..16],
-        &start_ip_str[16..24],
-        &start_ip_str[24..32],
-        &end_ip_str[0..8],
-        &end_ip_str[8..16],
-        &end_ip_str[16..24],
-        &end_ip_str[24..32]
+        "Network IP: {} ({})",
+        binary_subnet_str_to_octets(&network_ip_str),
+        binary_subnet_str_to_base10_octets(&network_ip_str),
+    );
+    println!(
+        "Min IP: {} ({})",
+        binary_subnet_str_to_octets(&min_ip_str),
+        binary_subnet_str_to_base10_octets(&min_ip_str)
+    );
+    println!(
+        "Max IP: {} ({})",
+        binary_subnet_str_to_octets(&max_ip_str),
+        binary_subnet_str_to_base10_octets(&max_ip_str)
+    );
+    println!(
+        "Broadcast IP: {} ({})",
+        binary_subnet_str_to_octets(&broadcast_ip_str),
+        binary_subnet_str_to_base10_octets(&broadcast_ip_str),
     );
 }
 
@@ -64,4 +81,23 @@ fn octets_to_binary_num_str(octets: &[u8; 4]) -> String {
         .map(|octet| format!("{:08b}", octet))
         .collect();
     binary_num_str
+}
+
+fn binary_subnet_str_to_octets(subnet_str: &str) -> String {
+    let octets: Vec<&str> = subnet_str
+        .as_bytes()
+        .chunks(8)
+        .map(|octet| std::str::from_utf8(octet).unwrap())
+        .collect();
+    octets.join(".")
+}
+
+fn binary_subnet_str_to_base10_octets(subnet_str: &str) -> String {
+    let octets: Vec<String> = subnet_str
+        .as_bytes()
+        .chunks(8)
+        .map(|octet| std::str::from_utf8(octet).unwrap())
+        .map(|octet| u8::from_str_radix(octet, 2).unwrap().to_string())
+        .collect();
+    octets.join(".")
 }
